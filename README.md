@@ -12,14 +12,19 @@ Bank-connected financial automation: Plaid transactions, income rules, recurring
 ## Deploy on Vercel
 
 1. Create a **PostgreSQL** database (e.g. [Neon](https://neon.tech)) and copy the connection string.
-2. Push this repo to GitHub and **Import** the project in [Vercel](https://vercel.com).
-3. In Vercel → Project → **Settings → Environment Variables**, add:
-   - `DATABASE_URL` — Postgres connection string (with `sslmode=require` if required)
+2. Import this repo in [Vercel](https://vercel.com) (GitHub is already connected if you used the CLI).
+3. In Vercel → Project → **Settings → Environment Variables** (Production + Preview), add:
+   - `DATABASE_URL` — Postgres connection string (often append `?sslmode=require`)
    - `AUTH_SECRET` — long random string (16+ characters)
    - `TOKEN_ENCRYPTION_KEY` — long random string (16+ characters)
    - `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`
-   - `NEXT_PUBLIC_APP_URL` — your production URL (e.g. `https://<project>.vercel.app`)
-4. Redeploy. The build runs `prisma migrate deploy` then `next build`.
+   - `NEXT_PUBLIC_APP_URL` — your production URL (e.g. `https://billflow.vercel.app`)
+4. **Apply database schema** (pick one):
+   - **Option A:** In Vercel → **Settings → General → Build & Development Settings**, set **Build Command** to `npm run build:migrate` (runs `prisma migrate deploy` then the normal build). Redeploy.
+   - **Option B:** From your machine, with `DATABASE_URL` pointing at the same database: `npx prisma migrate deploy`
+5. Redeploy if you changed the build command or env vars.
+
+The default `npm run build` only runs `prisma generate` + `next build` so the first deploy can succeed before `DATABASE_URL` exists; use **Option A** or **B** so tables are created.
 
 ## Plaid
 
