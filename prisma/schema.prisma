@@ -1,0 +1,135 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bankItems     BankItem[]
+  bankAccounts  BankAccount[]
+  transactions  Transaction[]
+  incomeRules   IncomeRule[]
+  bills         Bill[]
+}
+
+model BankItem {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId             String   @unique
+  accessTokenEnc     String
+  institutionName    String?
+  transactionsCursor String?
+  createdAt          DateTime @default(now())
+
+  accounts BankAccount[]
+}
+
+model BankAccount {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankItemId  String
+  bankItem    BankItem @relation(fields: [bankItemId], references: [id], onDelete: Cascade)
+  plaidAcctId String
+  name        String
+  mask        String?
+  type        String
+  subtype     String?
+  currency    String   @default("GBP")
+  createdAt   DateTime @default(now())
+
+  transactions Transaction[]
+
+  @@unique([bankItemId, plaidAcctId])
+}
+
+model Transaction {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bankAccountId  String
+  bankAccount    BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  plaidTxnId     String   @unique
+  /// Plaid: positive = outflow (expense), negative = inflow (income)
+  amount         Float
+  date           DateTime
+  authorizedDate DateTime?
+  name           String
+  merchantName   String?
+  pending        Boolean  @default(false)
+  /// INCOME_MATCHED | MISC_INCOME | BILL_PAYMENT | MISC_EXPENSE
+  classification String
+  incomeRuleId   String?
+  incomeRule     IncomeRule? @relation(fields: [incomeRuleId], references: [id], onDelete: SetNull)
+  billId         String?
+  bill           Bill?       @relation(fields: [billId], references: [id], onDelete: SetNull)
+  billCycleId    String?
+  billCycle      BillCycle?  @relation(fields: [billCycleId], references: [id], onDelete: SetNull)
+  matchNote      String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId, date])
+}
+
+model IncomeRule {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  matchText       String
+  expectedAmount  Float?
+  amountTolerance Float         @default(0)
+  createdAt       DateTime      @default(now())
+  transactions    Transaction[]
+}
+
+model Bill {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  matchText       String
+  /// FIXED | VARIABLE
+  amountType      String
+  expectedAmount  Float?
+  /// WEEKLY | MONTHLY | CUSTOM_DAYS
+  frequency       String
+  customDays      Int?
+  dueDayOfMonth   Int?
+  dueDayOfWeek    Int?
+  amountTolerance Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  cycles       BillCycle[]
+  transactions Transaction[]
+}
+
+model BillCycle {
+  id             String   @id @default(cuid())
+  billId         String
+  bill           Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  periodLabel    String
+  dueDate        DateTime
+  expectedAmount Float
+  paidAmount     Float    @default(0)
+  /// UPCOMING | DUE | PAID | PARTIAL | OVERPAID | MISSED | COMPLETED
+  status         String   @default("UPCOMING")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transactions Transaction[]
+
+  @@index([billId, dueDate])
+}
