@@ -4,8 +4,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  /// Pooled URL (Supabase “Transaction” pooler :6543) for serverless / Vercel
+  url       = env("DATABASE_URL")
+  /// Direct URL (Supabase :5432) — required for `prisma migrate`; can match DATABASE_URL if you do not use the pooler
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

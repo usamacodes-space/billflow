@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { databaseErrorResponse } from "@/lib/db-errors";
 import { prisma } from "@/lib/prisma";
 import { createSessionToken, hashPassword, setSessionCookie } from "@/lib/auth-session";
 
@@ -24,6 +25,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, userId: user.id });
   } catch (e) {
     console.error(e);
+    const db = databaseErrorResponse(e);
+    if (db) {
+      return NextResponse.json({ error: db.message }, { status: db.status });
+    }
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
   }
 }
