@@ -148,14 +148,14 @@ export default async function DashboardPage() {
         <h2 className="text-base font-semibold">Bank</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
           {bankLinked
-            ? "Your linked institution, live balances, and sync. Refresh the page to update balances."
+            ? "Your linked institution and live balances (they refresh automatically while you’re here). Use Sync for new transactions."
             : "Connect once, then use Sync to pull the latest activity."}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <PlaidConnectButton linked={bankLinked} />
           <SyncButton />
         </div>
-        <ConnectedBanksSection connections={connections} />
+        <ConnectedBanksSection initialConnections={connections} />
       </section>
 
       <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5">

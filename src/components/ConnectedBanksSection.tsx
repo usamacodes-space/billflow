@@ -1,6 +1,12 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import { formatMoney } from "@/lib/format";
 import type { BankConnectionView } from "@/lib/plaid-account-balances";
 import { DisconnectBankForm } from "@/components/DisconnectBankForm";
+
+const POLL_MS = 45_000;
+const FIRST_POLL_MS = 6_000;
 
 function accountTypeLabel(type: string, subtype: string | null) {
   const s = subtype?.replace(/_/g, " ") ?? "";
@@ -19,11 +25,79 @@ function balanceHint(
   return null;
 }
 
-export function ConnectedBanksSection({ connections }: { connections: BankConnectionView[] }) {
+function formatUpdatedAt(d: Date) {
+  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+export function ConnectedBanksSection({
+  initialConnections,
+}: {
+  initialConnections: BankConnectionView[];
+}) {
+  const [connections, setConnections] = useState(initialConnections);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    setConnections(initialConnections);
+  }, [initialConnections]);
+
+  const fetchBalances = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    setRefreshing(true);
+    try {
+      const r = await fetch("/api/plaid/balances", { cache: "no-store", credentials: "same-origin" });
+      if (!r.ok) return;
+      const j = (await r.json()) as { connections?: BankConnectionView[] };
+      if (Array.isArray(j.connections)) {
+        setConnections(j.connections);
+        setLastUpdated(new Date());
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (initialConnections.length === 0) return;
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void fetchBalances();
+    };
+
+    const firstTimer = window.setTimeout(() => void fetchBalances(), FIRST_POLL_MS);
+    const interval = window.setInterval(() => void fetchBalances(), POLL_MS);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      window.clearTimeout(firstTimer);
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [fetchBalances, initialConnections.length]);
+
   if (connections.length === 0) return null;
 
   return (
     <div className="mt-5 space-y-5 border-t border-[var(--card-border)] pt-5">
+      <p className="text-xs text-[var(--muted)]">
+        Balances refresh automatically about every {Math.round(POLL_MS / 1000)}s while this tab is
+        open, and whenever you come back to the page. Figures come from your bank via Plaid.
+        {lastUpdated ? (
+          <>
+            {" "}
+            <span className="text-[var(--foreground)]/80">
+              Last updated {formatUpdatedAt(lastUpdated)}
+            </span>
+          </>
+        ) : null}
+        {refreshing ? (
+          <span className="ml-2 text-[var(--accent)]">· Updating…</span>
+        ) : null}
+      </p>
+
       {connections.map((conn) => (
         <article
           key={conn.bankItemId}
@@ -44,11 +118,7 @@ export function ConnectedBanksSection({ connections }: { connections: BankConnec
                   Live balances could not be refreshed — account names are still shown from your last
                   link.
                 </p>
-              ) : (
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  Balances are loaded from your bank right now (may differ from pending charges).
-                </p>
-              )}
+              ) : null}
             </div>
           </div>
 

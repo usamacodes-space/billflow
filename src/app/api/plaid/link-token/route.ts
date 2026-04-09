@@ -13,7 +13,8 @@ export async function POST() {
     const res = await plaid.linkTokenCreate({
       user: { client_user_id: user.id },
       client_name: "BillFlow",
-      products: [Products.Transactions],
+      // Balance enables /accounts/balance/get for fresher figures; falls back to /accounts/get if unsupported.
+      products: [Products.Transactions, Products.Balance],
       country_codes: [CountryCode.Gb, CountryCode.Us],
       language: "en",
     });
