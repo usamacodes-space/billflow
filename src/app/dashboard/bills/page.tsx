@@ -19,120 +19,136 @@ export default async function BillsPage() {
   return (
     <div className="flex flex-col gap-10">
       <div>
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Bills</p>
         <h1
-          className="text-2xl font-extrabold tracking-tight"
+          className="mt-1 text-2xl font-extrabold tracking-tight md:text-3xl"
           style={{ fontFamily: "var(--font-syne), system-ui" }}
         >
-          Bills & cycles
+          Track what you owe
         </h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          Recurring obligations generate cycles (e.g. April rent, May rent). Payments from
-          your bank are matched by description keywords.
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--muted)]">
+          Add each bill once (name, rough amount, how often it’s due). We watch your spending for
+          lines that match the text you choose — same idea as income, but for money going out.
+          Each period shows up as a cycle so you can see paid vs still due.
         </p>
       </div>
 
-      <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-6">
-        <h2 className="text-lg font-semibold">Add bill</h2>
-        <form action={createBill} className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Name</span>
-            <input
-              name="name"
-              required
-              placeholder="Netflix"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Match text (in txn description)</span>
-            <input
-              name="matchText"
-              required
-              placeholder="NETFLIX"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Amount type</span>
-            <select
-              name="amountType"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            >
-              <option value={BillAmountType.FIXED}>Fixed</option>
-              <option value={BillAmountType.VARIABLE}>Variable</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Expected amount (fixed bills)</span>
-            <input
-              name="expectedAmount"
-              type="number"
-              step="0.01"
-              placeholder="10.99"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Frequency</span>
-            <select
-              name="frequency"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            >
-              <option value={BillFrequency.MONTHLY}>Monthly</option>
-              <option value={BillFrequency.WEEKLY}>Weekly</option>
-              <option value={BillFrequency.CUSTOM_DAYS}>Custom (days)</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Due day of month (monthly)</span>
-            <input
-              name="dueDayOfMonth"
-              type="number"
-              min={1}
-              max={28}
-              defaultValue={1}
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Due weekday (weekly, 0=Sun)</span>
-            <input
-              name="dueDayOfWeek"
-              type="number"
-              min={0}
-              max={6}
-              defaultValue={1}
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Custom period (days)</span>
-            <input
-              name="customDays"
-              type="number"
-              min={1}
-              placeholder="14"
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-[var(--muted)]">Amount tolerance (£)</span>
-            <input
-              name="amountTolerance"
-              type="number"
-              step="0.01"
-              defaultValue={0.5}
-              className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
-            />
-          </label>
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              className="rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-[var(--accent-fg)]"
-            >
-              Save bill
-            </button>
+      <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5 md:p-6">
+        <h2 className="text-base font-semibold">Add a bill</h2>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Give it a name you recognise, then paste text that appears on card or bank lines when you
+          pay (often the merchant name in capitals).
+        </p>
+        <form action={createBill} className="mt-5 space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-[var(--foreground)]">Bill name</span>
+              <input
+                name="name"
+                required
+                placeholder="Netflix, Council tax, Gym…"
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-medium text-[var(--foreground)]">Text to match</span>
+              <span className="text-xs text-[var(--muted)]">We look for this in the transaction description.</span>
+              <input
+                name="matchText"
+                required
+                placeholder="e.g. NETFLIX or COUNCIL TAX"
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium text-[var(--foreground)]">Amount</span>
+              <select
+                name="amountType"
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              >
+                <option value={BillAmountType.FIXED}>Same each time (fixed)</option>
+                <option value={BillAmountType.VARIABLE}>Varies (utilities, etc.)</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="text-[var(--muted)]">Typical amount (£)</span>
+              <input
+                name="expectedAmount"
+                type="number"
+                step="0.01"
+                placeholder="For fixed bills — e.g. 10.99"
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium text-[var(--foreground)]">How often</span>
+              <select
+                name="frequency"
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              >
+                <option value={BillFrequency.MONTHLY}>Monthly</option>
+                <option value={BillFrequency.WEEKLY}>Weekly</option>
+                <option value={BillFrequency.CUSTOM_DAYS}>Every N days</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="text-[var(--muted)]">Due day of month (1–28)</span>
+              <input
+                name="dueDayOfMonth"
+                type="number"
+                min={1}
+                max={28}
+                defaultValue={1}
+                className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2.5 outline-none ring-[var(--accent)] focus:ring-2"
+              />
+            </label>
           </div>
+
+          <details className="rounded-xl border border-[var(--card-border)] bg-[var(--background)]/40 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-[var(--foreground)]">
+              More options <span className="font-normal text-[var(--muted)]">(weekly schedule, custom gap, matching tolerance)</span>
+            </summary>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-[var(--muted)]">Due weekday if weekly (0 = Sunday … 6 = Saturday)</span>
+                <input
+                  name="dueDayOfWeek"
+                  type="number"
+                  min={0}
+                  max={6}
+                  defaultValue={1}
+                  className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="text-[var(--muted)]">Repeat every N days (custom)</span>
+                <input
+                  name="customDays"
+                  type="number"
+                  min={1}
+                  placeholder="14"
+                  className="rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
+                <span className="text-[var(--muted)]">Amount tolerance (£) — how close a payment must be to your typical amount</span>
+                <input
+                  name="amountTolerance"
+                  type="number"
+                  step="0.01"
+                  defaultValue={0.5}
+                  className="max-w-xs rounded-xl border border-[var(--card-border)] bg-[var(--background)] px-3 py-2 outline-none ring-[var(--accent)] focus:ring-2"
+                />
+              </label>
+            </div>
+          </details>
+
+          <button
+            type="submit"
+            className="rounded-xl bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-[var(--accent-fg)]"
+          >
+            Save bill
+          </button>
         </form>
       </section>
 
@@ -158,14 +174,14 @@ export default async function BillsPage() {
                 <form action={deleteBill.bind(null, bill.id)}>
                   <button
                     type="submit"
-                    className="text-sm text-[var(--expense)] hover:underline"
+                    className="rounded-lg border border-[var(--card-border)] px-4 py-2 text-sm text-[var(--muted)] transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300"
                   >
-                    Delete
+                    Remove
                   </button>
                 </form>
               </div>
               <h4 className="mt-4 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                Recent cycles
+                Recent periods
               </h4>
               <ul className="mt-2 space-y-2 text-sm">
                 {bill.cycles.map((c) => (

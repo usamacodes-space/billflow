@@ -5,8 +5,8 @@ import { LogoutButton } from "@/components/LogoutButton";
 
 const nav = [
   { href: "/dashboard", label: "Home" },
-  { href: "/dashboard/bills", label: "Your bills" },
-  { href: "/dashboard/income", label: "Income rules" },
+  { href: "/dashboard/bills", label: "Bills" },
+  { href: "/dashboard/income", label: "Income" },
 ];
 
 export default async function DashboardLayout({

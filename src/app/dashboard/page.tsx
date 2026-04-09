@@ -172,8 +172,7 @@ export default async function DashboardPage() {
       <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5">
         <h2 className="text-base font-semibold">Bills still to watch</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Due soon or partly paid. Set up bills under <strong className="text-[var(--foreground)]">Your bills</strong>{" "}
-          in the menu.
+          Due soon or partly paid.           Set up bills under <strong className="text-[var(--foreground)]">Bills</strong> in the menu.
         </p>
         <ul className="mt-4 space-y-3">
           {openCycles.length === 0 ? (
@@ -246,11 +245,11 @@ export default async function DashboardPage() {
 
       <p className="text-center text-xs text-[var(--muted)]">
         <Link href="/dashboard/income" className="underline decoration-white/20 hover:decoration-white/40">
-          Income rules
+          Income
         </Link>
         {" · "}
         <Link href="/dashboard/bills" className="underline decoration-white/20 hover:decoration-white/40">
-          Your bills
+          Bills
         </Link>
       </p>
     </div>
