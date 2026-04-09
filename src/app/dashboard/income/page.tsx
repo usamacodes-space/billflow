@@ -192,7 +192,7 @@ export default async function IncomePage({
             </label>
           </div>
 
-          <details className="group rounded-xl border border-[var(--card-border)] bg-[var(--background)]/40 px-4 py-3">
+          <details className="rounded-xl border border-[var(--card-border)] bg-[var(--background)]/40 px-4 py-3">
             <summary className="cursor-pointer text-sm font-medium text-[var(--foreground)] outline-none marker:text-[var(--muted)]">
               Optional: expected amount{" "}
               <span className="font-normal text-[var(--muted)]">(salary / fixed payments)</span>
