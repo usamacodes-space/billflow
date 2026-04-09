@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { usePlaidLink, PlaidLinkOnSuccess } from "react-plaid-link";
 import { useRouter } from "next/navigation";
 
-export function PlaidConnectButton() {
+export function PlaidConnectButton({ linked = false }: { linked?: boolean }) {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export function PlaidConnectButton() {
           onClick={openLink}
           className="rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-[var(--accent-fg)] shadow-sm transition hover:opacity-95 disabled:opacity-50"
         >
-          {loading ? "Preparing…" : "Connect bank (Plaid)"}
+          {loading ? "Preparing…" : linked ? "Add another bank" : "Connect bank (Plaid)"}
         </button>
       )}
       {err ? <p className="text-sm text-red-400">{err}</p> : null}

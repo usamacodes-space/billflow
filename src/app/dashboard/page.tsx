@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-session";
 import { TxnClassification } from "@/lib/constants";
 import { formatMoney, signedLabel } from "@/lib/format";
+import { ConnectedBanksSection } from "@/components/ConnectedBanksSection";
 import { PlaidConnectButton } from "@/components/PlaidConnectButton";
 import { SyncButton } from "@/components/SyncButton";
+import { getBankConnectionsWithBalances } from "@/lib/plaid-account-balances";
 
 const RANGE_DAYS = 90;
 
@@ -28,11 +30,8 @@ export default async function DashboardPage() {
   const from = new Date();
   from.setDate(from.getDate() - RANGE_DAYS);
 
-  const [accounts, txns, metricsRows, openCycles, txnCount] = await Promise.all([
-    prisma.bankAccount.findMany({
-      where: { userId: user.id },
-      include: { bankItem: true },
-    }),
+  const [connections, txns, metricsRows, openCycles, txnCount] = await Promise.all([
+    getBankConnectionsWithBalances(user.id),
     prisma.transaction.findMany({
       where: { userId: user.id, date: { gte: from } },
       orderBy: { date: "desc" },
@@ -71,7 +70,8 @@ export default async function DashboardPage() {
   }
 
   const totalIncome = incomeMatched + miscIncome;
-  const bankLinked = accounts.length > 0;
+  const bankLinked = connections.length > 0;
+  const accountCount = connections.reduce((n, c) => n + c.accounts.length, 0);
 
   return (
     <div className="flex flex-col gap-8">
@@ -127,7 +127,7 @@ export default async function DashboardPage() {
             </span>
             <span>
               {bankLinked
-                ? `Bank linked (${accounts.length} account${accounts.length === 1 ? "" : "s"})`
+                ? `Bank linked (${accountCount} account${accountCount === 1 ? "" : "s"})`
                 : "Connect your bank below, then tap Sync"}
             </span>
           </li>
@@ -147,32 +147,21 @@ export default async function DashboardPage() {
       <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5">
         <h2 className="text-base font-semibold">Bank</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Connect once, then use Sync to pull the latest activity.
+          {bankLinked
+            ? "Your linked institution, live balances, and sync. Refresh the page to update balances."
+            : "Connect once, then use Sync to pull the latest activity."}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <PlaidConnectButton />
+          <PlaidConnectButton linked={bankLinked} />
           <SyncButton />
         </div>
-        {bankLinked ? (
-          <ul className="mt-4 space-y-1.5 border-t border-[var(--card-border)] pt-4 text-sm text-[var(--muted)]">
-            {accounts.map((a) => (
-              <li key={a.id}>
-                <span className="text-[var(--foreground)]">{a.name}</span>
-                {a.mask ? ` · ${a.mask}` : ""}
-                <span className="text-[var(--muted)]">
-                  {" · "}
-                  {a.bankItem.institutionName ?? "Linked"}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <ConnectedBanksSection connections={connections} />
       </section>
 
       <section className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5">
         <h2 className="text-base font-semibold">Bills still to watch</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Due soon or partly paid.           Set up bills under <strong className="text-[var(--foreground)]">Bills</strong> in the menu.
+          Due soon or partly paid. Set up bills under <strong className="text-[var(--foreground)]">Bills</strong> in the menu.
         </p>
         <ul className="mt-4 space-y-3">
           {openCycles.length === 0 ? (
